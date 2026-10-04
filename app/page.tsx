@@ -22,10 +22,10 @@ const portfolio: PortfolioItem[] = [
     value: 60,
     color: "rgba(255, 255, 255, 0.9)",
     performance: {
-      "1D": 0.82,
-      "1W": 2.41,
-      "1M": 5.73,
-      "1Y": 18.42,
+      "1D": 0,
+      "1W": 0,
+      "1M": 0,
+      "1Y": 0,
     },
   },
   {
@@ -46,10 +46,10 @@ const portfolio: PortfolioItem[] = [
     value: 10,
     color: "rgba(255, 255, 255, 0.18)",
     performance: {
-      "1D": 2.31,
-      "1W": 6.82,
-      "1M": 14.27,
-      "1Y": 42.71,
+      "1D": 0,
+      "1W": 0,
+      "1M": 0,
+      "1Y": 0,
     },
   },
   {
@@ -58,10 +58,10 @@ const portfolio: PortfolioItem[] = [
     value: 5,
     color: "rgba(255, 255, 255, 0.08)",
     performance: {
-      "1D": 0.34,
-      "1W": 1.21,
-      "1M": 3.84,
-      "1Y": 12.36,
+      "1D": 0,
+      "1W": 0,
+      "1M": 0,
+      "1Y": 0,
     },
   },
 ];
@@ -71,13 +71,49 @@ const periods = ["1D", "1W", "1M", "1Y"] as const;
 type Period = (typeof periods)[number];
 
 export default function Home() {
+  useEffect(() => {
+    const fetchMarketData = async () => {
+      try {
+        setMarketLoading(true);
+
+        const response = await fetch("/api/market");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch market data");
+        }
+
+        const data = await response.json();
+
+        setMarketData(data);
+      } catch (error) {
+        console.error(
+          "Market data fetch error:",
+          error
+        );
+      } finally {
+        setMarketLoading(false);
+      }
+    };
+
+    fetchMarketData();
+  }, []);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [entered, setEntered] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
   const [period, setPeriod] = useState<Period>("1Y");
-
+  
+  const [marketData, setMarketData] =
+    useState<Record<string, MarketData> | null>(null);
+  type MarketData = {
+    "1D": number;
+    "1W": number;
+    "1M": number;
+    "1Y": number;
+  };
+  const [marketLoading, setMarketLoading] =
+    useState(true);
   const enterSite = () => {
     setEntered(true);
 
@@ -185,14 +221,42 @@ export default function Home() {
 
     return () => clearTimeout(timeout);
   }, []);
-  const totalValue = portfolio.reduce(
+  const livePortfolio = portfolio.map((item) => {
+    if (!marketData) {
+      return item;
+    }
+
+    if (item.symbol === "NDX") {
+      return {
+        ...item,
+        performance: marketData.NASDAQ,
+      };
+    }
+
+    if (item.symbol === "BTC") {
+      return {
+        ...item,
+        performance: marketData.BTC,
+      };
+    }
+
+    if (item.symbol === "USD/JPY") {
+      return {
+        ...item,
+        performance: marketData.USD,
+      };
+    }
+
+    return item;
+  });
+  const totalValue = livePortfolio.reduce(
     (total, item) => total + item.value,
     0
   );
 
   let currentAngle = 0;
 
-  const donutGradient = portfolio
+  const donutGradient = livePortfolio
     .map((item) => {
       const percentage =
         (item.value / totalValue) * 100;
@@ -205,7 +269,7 @@ export default function Home() {
       return `${item.color} ${start}% ${end}%`;
     })
     .join(", ");
-  const totalPerformance = portfolio.reduce(
+  const totalPerformance = livePortfolio.reduce(
     (total, item) => {
       return total + (item.value / 100) * item.performance[period];
     },
@@ -421,7 +485,7 @@ export default function Home() {
 
             <div className="portfolio-info">
 
-              {portfolio.map((item) => {
+              {livePortfolio.map((item) => {
 
                 const change =
                   item.performance[period];
