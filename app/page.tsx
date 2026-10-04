@@ -1,69 +1,474 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+type PortfolioItem = {
+  name: string;
+  symbol: string;
+  value: number;
+  color: string;
+  performance: {
+    "1D": number;
+    "1W": number;
+    "1M": number;
+    "1Y": number;
+  };
+};
+
+const portfolio: PortfolioItem[] = [
+  {
+    name: "NASDAQ 100",
+    symbol: "NDX",
+    value: 60,
+    color: "rgba(255, 255, 255, 0.9)",
+    performance: {
+      "1D": 0.82,
+      "1W": 2.41,
+      "1M": 5.73,
+      "1Y": 18.42,
+    },
+  },
+  {
+    name: "Cash",
+    symbol: "JPY",
+    value: 25,
+    color: "rgba(255, 255, 255, 0.38)",
+    performance: {
+      "1D": 0,
+      "1W": 0,
+      "1M": 0,
+      "1Y": 0,
+    },
+  },
+  {
+    name: "Crypto",
+    symbol: "BTC",
+    value: 10,
+    color: "rgba(255, 255, 255, 0.18)",
+    performance: {
+      "1D": 2.31,
+      "1W": 6.82,
+      "1M": 14.27,
+      "1Y": 42.71,
+    },
+  },
+  {
+    name: "USD",
+    symbol: "USD/JPY",
+    value: 5,
+    color: "rgba(255, 255, 255, 0.08)",
+    performance: {
+      "1D": 0.34,
+      "1W": 1.21,
+      "1M": 3.84,
+      "1Y": 12.36,
+    },
+  },
+];
+
+const periods = ["1D", "1W", "1M", "1Y"] as const;
+
+type Period = (typeof periods)[number];
 
 export default function Home() {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [entered, setEntered] = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
+  const [period, setPeriod] = useState<Period>("1Y");
+
+  const enterSite = () => {
+    setEntered(true);
+
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+
+      videoRef.current
+        .play()
+        .catch(() => {});
+    }
+
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.volume = 0.35;
+
+      audioRef.current
+        .play()
+        .then(() => {
+          setSoundOn(true);
+        })
+        .catch(() => {
+          setSoundOn(false);
+        });
+    }
+  };
+
+  const toggleSound = () => {
+    if (!audioRef.current) return;
+
+    if (soundOn) {
+      audioRef.current.pause();
+      setSoundOn(false);
+    } else {
+      audioRef.current.volume = 0.35;
+
+      audioRef.current
+        .play()
+        .then(() => {
+          setSoundOn(true);
+        })
+        .catch(() => {
+          setSoundOn(false);
+        });
+    }
+  };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+
+    return () => {
+      videoRef.current?.pause();
+      audioRef.current?.pause();
+    };
+  }, []);
+  const totalValue = portfolio.reduce(
+    (total, item) => total + item.value,
+    0
+  );
+
+  let currentAngle = 0;
+
+  const donutGradient = portfolio
+    .map((item) => {
+      const percentage =
+        (item.value / totalValue) * 100;
+
+      const start = currentAngle;
+      const end = currentAngle + percentage;
+
+      currentAngle = end;
+
+      return `${item.color} ${start}% ${end}%`;
+    })
+    .join(", ");
+  const totalPerformance = portfolio.reduce(
+    (total, item) => {
+      return total + (item.value / 100) * item.performance[period];
+    },
+    0
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="site">
+
+      {/* =========================
+          BACKGROUND VIDEO
+      ========================== */}
+
+      <video
+        ref={videoRef}
+        className="background-video"
+        src="/background.mp4"
+        muted
+        loop
+        playsInline
+        preload="auto"
+      />
+
+      <div className="background-overlay" />
+
+      {/* =========================
+          AUDIO
+      ========================== */}
+
+      <audio
+        ref={audioRef}
+        src="/bgm.mp3"
+        loop
+        preload="auto"
+      />
+
+      {/* =========================
+          ENTER SCREEN
+      ========================== */}
+
+      {!entered && (
+        <div
+          className="enter-screen"
+          onClick={enterSite}
+        >
+          <div className="enter-button">
+            ENTER
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+      )}
+
+      {/* =========================
+          MAIN CONTENT
+      ========================== */}
+
+      <div
+        className={`content ${
+          entered ? "visible" : ""
+        }`}
+      >
+
+        {/* =========================
+            PROFILE
+        ========================== */}
+
+        <section className="profile">
+
+          <div className="profile-image">
+            <img
+              src="/profile.jpg"
+              alt="SpaceMan"
             />
-            Deploy Now
-          </a>
+          </div>
+
+          <h1>
+            SpaceMan
+          </h1>
+
+          <p className="username">
+            @username
+          </p>
+
+        </section>
+
+        {/* =========================
+            SOCIALS
+        ========================== */}
+
+        <section className="socials">
+
+          {/* Instagram */}
+
           <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            href="https://instagram.com/"
             target="_blank"
             rel="noopener noreferrer"
+            className="social-icon"
+            aria-label="Instagram"
           >
-            Documentation
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <rect
+                x="3"
+                y="3"
+                width="18"
+                height="18"
+                rx="5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
+
+              <circle
+                cx="12"
+                cy="12"
+                r="4.2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
+
+              <circle
+                cx="17.4"
+                cy="6.7"
+                r="1.2"
+                fill="currentColor"
+              />
+            </svg>
           </a>
-        </div>
-      </main>
-    </div>
+
+          {/* TikTok */}
+
+          <a
+            href="https://tiktok.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-icon"
+            aria-label="TikTok"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M15.5 3c.3 2.6 1.8 4.1 4.5 4.3v3.1c-1.6.1-3-.4-4.4-1.2v6.7c0 4.1-2.7 6.1-5.7 6.1-3 0-5.4-2-5.4-5.2 0-3.3 2.7-5.5 6.1-5.2v3.2c-1.7-.3-2.8.5-2.8 1.9 0 1.1.8 2 2 2 1.3 0 2.5-.8 2.5-2.8V3h3.2z"
+                fill="currentColor"
+              />
+            </svg>
+          </a>
+
+          {/* Discord */}
+
+          <a
+            href="#"
+            className="social-icon"
+            aria-label="Discord"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M19.5 5.1A16.2 16.2 0 0 0 15.6 4l-.5 1.1a14.5 14.5 0 0 0-6.2 0L8.4 4a16.2 16.2 0 0 0-3.9 1.1C2 8.5 1.3 12 1.6 15.5a16 16 0 0 0 4.8 2.4l1.2-1.6c-.7-.3-1.3-.6-1.9-1 .2-.1.4-.2.6-.4 3.7 1.7 7.7 1.7 11.4 0 .2.1.4.3.6.4-.6.4-1.2.7-1.9 1l1.2 1.6a16 16 0 0 0 4.8-2.4c.4-4.1-.7-7.5-2.9-10.4ZM8.7 14.1c-1.1 0-2-1-2-2.2s.9-2.2 2-2.2 2 1 2 2.2-.9 2.2-2 2.2Zm6.6 0c-1.1 0-2-1-2-2.2s.9-2.2 2-2.2 2 1 2 2.2-.9 2.2-2 2.2Z"
+                fill="currentColor"
+              />
+            </svg>
+          </a>
+
+        </section>
+
+        {/* =========================
+            PORTFOLIO
+        ========================== */}
+
+        <section className="portfolio">
+
+          <div className="portfolio-card">
+            <div className="portfolio-heading">
+              <span>ASSET PORTFOLIO</span>
+            </div>
+
+            {/* DONUT */}
+
+            <div
+              className="donut"
+              style={{
+                background: `conic-gradient(${donutGradient})`,
+              }}
+            >
+              <div className="donut-center">
+                <span className="donut-label">TOTAL</span>
+
+                <span
+                  className={`donut-performance ${
+                    totalPerformance > 0
+                      ? "positive"
+                      : totalPerformance < 0
+                      ? "negative"
+                      : "neutral"
+                  }`}
+                >
+                  {totalPerformance > 0 ? "+" : ""}
+                  {totalPerformance.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+
+            {/* PORTFOLIO INFORMATION */}
+
+            <div className="portfolio-info">
+
+              {portfolio.map((item) => {
+
+                const change =
+                  item.performance[period];
+
+                const performanceClass =
+                  change > 0
+                    ? "positive"
+                    : change < 0
+                    ? "negative"
+                    : "neutral";
+
+                return (
+                  <div
+                    className="portfolio-item"
+                    key={item.name}
+                  >
+
+                    <div className="portfolio-left">
+
+                      <span className="portfolio-name">
+                        {item.name}
+                      </span>
+
+                      <span className="portfolio-weight">
+                        {item.value}%
+                      </span>
+
+                    </div>
+
+                    <span
+                      key={`${item.name}-${period}`}
+                      className={`portfolio-performance ${performanceClass}`}
+                    >
+                      {change > 0
+                        ? "+"
+                        : ""}
+
+                      {change.toFixed(2)}%
+                    </span>
+
+                  </div>
+                );
+              })}
+
+              {/* PERIOD SELECTOR */}
+
+              <div className="period-selector">
+
+                {periods.map((item) => (
+
+                  <button
+                    key={item}
+                    className={
+                      period === item
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setPeriod(item)
+                    }
+                  >
+                    {item}
+                  </button>
+
+                ))}
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* =========================
+            SOUND BUTTON
+        ========================== */}
+
+        <button
+          className={`sound-button ${
+            soundOn ? "active" : ""
+          }`}
+          onClick={toggleSound}
+          aria-label={
+            soundOn
+              ? "Turn sound off"
+              : "Turn sound on"
+          }
+        >
+          {soundOn ? "♪" : "×"}
+        </button>
+
+      </div>
+
+    </main>
   );
 }
