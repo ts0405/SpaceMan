@@ -140,6 +140,51 @@ export default function Home() {
       audioRef.current?.pause();
     };
   }, []);
+  useEffect(() => {
+    const text = "SpaceMan";
+
+    let index = 0;
+    let deleting = false;
+
+    const typeSpeed = 150;
+    const deleteSpeed = 90;
+    const pauseAtEnd = 1000;
+    const pauseAtStart = 350;
+
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const animate = () => {
+      if (!deleting) {
+        index++;
+
+        document.title = `@${text.slice(0, index)}`;
+
+        if (index >= text.length) {
+          deleting = true;
+          timeout = setTimeout(animate, pauseAtEnd);
+          return;
+        }
+
+        timeout = setTimeout(animate, typeSpeed);
+      } else {
+        index--;
+
+        document.title = `@${text.slice(0, index)}`;
+
+        if (index <= 0) {
+          deleting = false;
+          timeout = setTimeout(animate, pauseAtStart);
+          return;
+        }
+
+        timeout = setTimeout(animate, deleteSpeed);
+      }
+    };
+
+    animate();
+
+    return () => clearTimeout(timeout);
+  }, []);
   const totalValue = portfolio.reduce(
     (total, item) => total + item.value,
     0
@@ -240,7 +285,7 @@ export default function Home() {
           </h1>
 
           <p className="username">
-            @username
+            @smts_0405
           </p>
 
         </section>
@@ -254,7 +299,7 @@ export default function Home() {
           {/* Instagram */}
 
           <a
-            href="https://instagram.com/"
+            href="https://www.instagram.com/smts_0405/"
             target="_blank"
             rel="noopener noreferrer"
             className="social-icon"
@@ -296,7 +341,7 @@ export default function Home() {
           {/* TikTok */}
 
           <a
-            href="https://tiktok.com/"
+            href="https://www.tiktok.com/@souma.__.j"
             target="_blank"
             rel="noopener noreferrer"
             className="social-icon"
@@ -316,7 +361,9 @@ export default function Home() {
           {/* Discord */}
 
           <a
-            href="#"
+            href="http://discordapp.com/users/898872229062934569"
+            target="_blank"
+            rel="noopener noreferrer"
             className="social-icon"
             aria-label="Discord"
           >
