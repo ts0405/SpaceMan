@@ -22,7 +22,8 @@ body {
 }
 
 body {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 button,
@@ -40,15 +41,11 @@ select {
 .site {
   position: relative;
 
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
   min-height: 100svh;
-
-  overflow: hidden;
 
   background: #000;
 }
-
 /* =========================================================
    BACKGROUND VIDEO
 ========================================================= */
@@ -232,22 +229,12 @@ select {
 
   z-index: 10;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
   width: 100%;
-  height: 100%;
-
-  padding: 40px 24px;
 
   opacity: 0;
   visibility: hidden;
 
-  transform:
-    translateY(12px)
-    scale(0.985);
+  transform: translateY(12px) scale(0.985);
 
   transition:
     opacity 1s ease,
@@ -259,11 +246,37 @@ select {
   opacity: 1;
   visibility: visible;
 
-  transform:
-    translateY(0)
-    scale(1);
+  transform: translateY(0) scale(1);
+}
+/* =========================
+   HERO SCENE
+========================= */
+
+.hero {
+  position: relative;
+
+  width: 100%;
+  height: 100svh;
+  min-height: 100svh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 24px;
+
+  overflow: hidden;
 }
 
+.hero-inner {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+}
 /* =========================================================
    PROFILE
 ========================================================= */
@@ -1112,6 +1125,24 @@ select {
 ========================================================= */
 
 @media (max-width: 700px) {
+  .showcase-video {
+    margin-top: 120px;
+    padding: 0 16px 80px;
+  }
+
+  .showcase-video-inner {
+    border-radius: 18px;
+
+    transform:
+      translateY(80px)
+      scale(0.96);
+  }
+
+  .showcase-video-inner.is-visible {
+    transform:
+      translateY(0)
+      scale(1);
+  }
   .content {
     padding: 30px 16px;
   }
@@ -1219,5 +1250,191 @@ select {
     animation-iteration-count: 1 !important;
 
     transition-duration: 0.01ms !important;
+  }
+}
+/* =========================
+   SHOWCASE SCENE
+========================= */
+
+.showcase-video {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 100svh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  overflow: hidden;
+}
+
+/* =========================
+   SHOWCASE VIDEO
+========================= */
+
+.showcase-video-inner {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  opacity: 0;
+  transform: scale(1.08);
+
+  filter: blur(18px);
+
+  transition:
+    opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* =========================
+   SHOWCASE ACTIVE
+========================= */
+
+.showcase-video-inner.is-visible {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+}
+
+/* =========================
+   VIDEO
+========================= */
+
+.showcase-video-inner video {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  transform: scale(1.02);
+
+  transition:
+    transform 2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.showcase-video-inner.is-visible video {
+  transform: scale(1);
+}
+/* =========================
+   SHOWCASE - PC ONLY
+========================= */
+
+@media (max-width: 768px) {
+  .showcase-video {
+    display: none !important;
+  }
+}
+/* =========================
+   iPhone / SMALL MOBILE
+========================= */
+
+@media (max-width: 400px) {
+  .hero {
+    min-height: 100svh;
+    height: auto;
+    padding: 30px 14px;
+  }
+
+  .hero-inner {
+    width: 100%;
+  }
+
+  .profile {
+    transform: scale(0.9);
+    transform-origin: center;
+  }
+
+  .profile h1 {
+    font-size: 34px;
+  }
+
+  .portfolio {
+    width: 100%;
+    max-width: 350px;
+    margin-top: 20px;
+  }
+
+  .portfolio-card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 16px;
+  }
+
+  .portfolio-heading {
+    width: 100%;
+    text-align: center;
+  }
+
+  .donut {
+    width: 125px;
+    height: 125px;
+    flex-shrink: 0;
+  }
+
+  .portfolio-info {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .portfolio-item {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .portfolio-left {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .portfolio-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .portfolio-weight {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .portfolio-performance {
+    flex-shrink: 0;
+    min-width: 65px;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .period-selector {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+
+  .period-selector button {
+    min-width: 0;
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .socials {
+    margin-bottom: 10px;
   }
 }
